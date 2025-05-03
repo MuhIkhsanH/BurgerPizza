@@ -21,9 +21,9 @@
     <button id="predictButton">Prediksi</button>
 
     <script>
-        // Fungsi untuk memuat model
+        // Fungsi untuk memuat model menggunakan GraphModel
         async function loadModel() {
-            const model = await tf.loadLayersModel('model/model.json'); // Path model.json dalam folder model
+            const model = await tf.loadGraphModel('model/model.json'); // Path model.json dalam folder model
             console.log('Model Loaded');
             return model;
         }
@@ -52,16 +52,24 @@
                 .resizeNearestNeighbor([128, 128])  // Ukuran input sesuai dengan model
                 .toFloat()
                 .expandDims(0);  // Menambahkan dimensi batch
-            
-            // Melakukan prediksi
-            const prediction = model.predict(tensor);
 
-            // Menampilkan hasil prediksi
+            // Melakukan prediksi
+            const prediction = await model.predict(tensor);
+
+            // Menampilkan hasil prediksi (untuk debugging)
             prediction.print();
 
             // Menampilkan hasil dalam bentuk label dan nilai
             const result = await prediction.data();
-            alert(`Prediksi: ${result}`);
+
+            // Mencari kelas dengan nilai probabilitas terbesar
+            const classIndex = result.indexOf(Math.max(...result)); 
+
+            // Menggunakan index untuk menentukan label
+            const labels = ["Burger", "Pizza"]; // Sesuaikan dengan urutan kelas pada model Anda
+
+            // Menampilkan hasil prediksi
+            alert(`Prediksi: ${labels[classIndex]} dengan nilai: ${result[classIndex]}`);
         }
 
         // Menangani klik prediksi
