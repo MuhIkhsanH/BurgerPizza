@@ -1,1 +1,71 @@
-test
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediksi Gambar dengan TensorFlow.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+</head>
+<body>
+    <h1>Prediksi Gambar dengan TensorFlow.js</h1>
+
+    <!-- Form upload gambar -->
+    <input type="file" id="uploadImage" accept="image/*">
+    <br><br>
+
+    <!-- Tempat untuk menampilkan gambar -->
+    <img id="myImage" src="" style="max-width: 300px;">
+    <br><br>
+
+    <!-- Button untuk memulai prediksi -->
+    <button id="predictButton">Prediksi</button>
+
+    <script>
+        // Fungsi untuk memuat model
+        async function loadModel() {
+            const model = await tf.loadLayersModel('model/model.json'); // Path model.json dalam folder model
+            console.log('Model Loaded');
+            return model;
+        }
+
+        // Fungsi untuk menangani upload gambar
+        document.getElementById('uploadImage').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                // Menampilkan gambar yang diupload
+                document.getElementById('myImage').src = e.target.result;
+            };
+            
+            reader.readAsDataURL(file);
+        });
+
+        // Fungsi untuk melakukan prediksi
+        async function predictImage() {
+            const model = await loadModel();
+
+            const imgElement = document.getElementById('myImage');
+
+            // Membaca gambar sebagai tensor
+            const tensor = tf.browser.fromPixels(imgElement)
+                .resizeNearestNeighbor([128, 128])  // Ukuran input sesuai dengan model
+                .toFloat()
+                .expandDims(0);  // Menambahkan dimensi batch
+            
+            // Melakukan prediksi
+            const prediction = model.predict(tensor);
+
+            // Menampilkan hasil prediksi
+            prediction.print();
+
+            // Menampilkan hasil dalam bentuk label dan nilai
+            const result = await prediction.data();
+            alert(`Prediksi: ${result}`);
+        }
+
+        // Menangani klik prediksi
+        document.getElementById('predictButton').addEventListener('click', predictImage);
+    </script>
+</body>
+</html>
